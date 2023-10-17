@@ -106,5 +106,59 @@ public class CasosDeUsoCrearRutas {
 
         return;
     }
+    // CU02: Unirse a una ruta específica
+public void unirseARuta(Long idRuta, Long idUsuario) throws ExcepcionRutas {
+    // 1. Valida que exista la ruta
+    Optional<Ruta> rutaOptional = rutas.findById(idRuta);
+    if (rutaOptional.isEmpty()) {
+        throw new ExcepcionRutas("No existe una ruta con ese id");
+    }
+
+    Ruta rutaSeleccionada = rutaOptional.get();
+
+    // 2. Valida que exista el usuario
+    Optional<Usuario> usuarioOptional = usuarios.findById(idUsuario);
+    if (usuarioOptional.isEmpty()) {
+        throw new ExcepcionRutas("No existe un usuario con ese id");
+    }
+
+    Usuario usuario = usuarioOptional.get();
+
+    // 3. Verifica que exista cupo para un nuevo participante
+    if (rutaSeleccionada.getCupoDisponible() <= 0) {
+        throw new ExcepcionRutas("No hay disponibilidad de cupos en esta ruta");
+    }
+
+    // 4. Añade al usuario a la lista de participantes de la ruta
+    rutaSeleccionada.agregarParticipante(usuario);
+
+    // 5. Disminuye el cupo disponible
+    rutaSeleccionada.disminuirCupo();
+
+    // 6. Actualiza la ruta en la base de datos
+    rutas.save(rutaSeleccionada);
+
+    // 7. Muestra alerta "se ha unido con éxito"
+    System.out.println("Se ha unido con éxito a la ruta " + rutaSeleccionada.getNombreRuta());
+}
+
+// CU03: Filtrar rutas existentes
+public List<Ruta> filtrarRutas(double distanciaMaxima) {
+    // 1. Muestra todas las rutas disponibles
+    List<Ruta> todasLasRutas = rutas.findAll();
+
+    // 2. Filtra las rutas por distancia máxima
+    List<Ruta> rutasFiltradas = todasLasRutas.stream()
+            .filter(ruta -> ruta.getDistanciaRecorrido() <= distanciaMaxima)
+            .collect(Collectors.toList());
+
+    // 3. Si no existen rutas que cumplan con los filtros especificados, muestra un mensaje
+    if (rutasFiltradas.isEmpty()) {
+        System.out.println("No hay rutas existentes con los requisitos especificados");
+    }
+
+    return rutasFiltradas;
+}
+}
 
 }
